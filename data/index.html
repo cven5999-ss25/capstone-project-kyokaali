@@ -285,6 +285,22 @@ $ dataset_title                &lt;chr&gt; "Water For People_Global_2017-2020", 
 </section>
 <section id="initial-data-tidying" class="level2">
 <h2 class="anchored" data-anchor-id="initial-data-tidying">Initial Data Tidying</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Tidy column names</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>uganda_water_data_revised <span class="ot">&lt;-</span> uganda_water_data <span class="sc">|&gt;</span> </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Region =</span> clean_adm1, </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">District =</span> clean_adm2,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">County =</span> clean_adm3,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">Subcounty =</span> clean_adm4)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#delete all columns that have all values as NA</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>uganda_water_data_revised_without_NA <span class="ot">&lt;-</span> uganda_water_data_revised <span class="sc">|&gt;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">where</span>(<span class="sc">~</span> <span class="sc">!</span><span class="fu">all</span>(<span class="fu">is.na</span>(.))))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(uganda_water_data_revised_without_NA, here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data/processed/uganda_water_data_revised_without_NA.csv"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
 </section>
 <section id="results" class="level1">

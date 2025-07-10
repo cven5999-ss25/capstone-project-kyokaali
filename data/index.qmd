@@ -55,8 +55,7 @@ uganda_water_data_revised <- uganda_water_data |>
   rename(Region = clean_adm1, 
          District = clean_adm2,
          County = clean_adm3,
-         Subcounty = clean_adm4,
-         install_year = install_date)  
+         Subcounty = clean_adm4)  
 ```
 
 ```{r}
