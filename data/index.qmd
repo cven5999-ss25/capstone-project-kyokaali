@@ -1,0 +1,61 @@
+---
+title: "Benchmarking Water Point Functionality in Uganda (2017–2020): Insights for Sustainable Rural Water Supply"
+author:
+  - name: "Kyokaali Lydia"
+    orcid: "0000-0000-0000-0000"
+    email: "lydia.k.lubogo@gmail.com"
+    affiliation:
+      - name: "University of Colorado Boulder"
+        department: "Department of Civil, Environmental and Architectural Engineering"
+        city: "Boulder"
+        state: "CO"
+        country: "USA"
+date: 10th July 2025
+format: html
+editor: visual
+---
+
+# Introduction
+
+[Brief description of your project and dataset]
+
+# Methods
+```{r}
+# Load packages
+library(tidyverse)
+
+# Read data
+uganda_water_data <- read_csv(here::here("data/raw/Water_for_People_Uganda_2017_2020.csv"))
+```
+
+## Reading the Data
+
+## Data Exploration Approach
+```{r}
+glimpse(uganda_water_data)
+
+dim(uganda_water_data)
+
+# Group by water source type and count the number of records
+uganda_water_data |> 
+  group_by(water_source) |> 
+  summarise(n = n())
+
+#Group by functionality status
+uganda_water_data |> 
+  group_by(status) |> 
+  summarise(count = n(), .groups = "drop") 
+```
+
+
+## Initial Data Tidying
+
+# Results
+
+[This will be the core of your analysis with specific requirements]
+
+# Conclusions
+
+## Summary of Findings
+
+## Questions and Next Steps
