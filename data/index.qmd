@@ -4,61 +4,148 @@ author:
   - name: "Kyokaali Lydia"
     orcid: "0000-0000-0000-0000"
     email: "lydia.k.lubogo@gmail.com"
+    code-tools: true
+    code-fold: true
+    number-sections: true
     affiliation:
       - name: "University of Colorado Boulder"
         department: "Department of Civil, Environmental and Architectural Engineering"
         city: "Boulder"
         state: "CO"
         country: "USA"
-date: 10th July 2025
-format: html
-editor: visual
+date: 2025-07-22
+format:
+  html: 
+    toc: true
+editor: 
+  visual: true
+execute: 
+  warning: false
 ---
 
 # Introduction
 
-[Brief description of your project and dataset]
+Access to safe and reliable water remains a major development challenge in Uganda, particularly in rural areas where many communities rely on point water sources such as boreholes, protected springs, and hand-dug wells. While significant progress has been made through government programs and the contributions of development partners, issues of non-functionality, seasonal variability, and inadequate maintenance continue to affect service reliability and sustainability.
+
+This report analyzes a data set of water points documented between 2017 and 2020. The data set, sourced from the Water Point Data Exchange (WPDx), consolidates contributions from multiple organizations including local governments, NGOs, and international development actors such as Water For People. It includes data on water source types, functionality status, geographic distribution, and installation or service dates.
+
+By benchmarking key indicators such as functionality over time and source type distribution, this analysis provides valuable insights into rural water service performance and infrastructure sustainability. The findings aim to support evidence-based decision-making and guide future investments to improve water service reliability and equity across Uganda.
 
 # Methods
-```{r}
-# Load packages
-library(tidyverse)
 
-# Read data
-uganda_water_data <- read_csv(here::here("data/raw/Water_for_People_Uganda_2017_2020.csv"))
+#### **Data Scope and Filtering**
+
+The dataset analyzed in this report was sourced from the **Water Point Data Exchange (WPDx)** platform, a global repository that consolidates water point data submitted by governments, NGOs, and development partners. The dataset includes water point records from multiple actors operating across Uganda, reflecting a broad range of implementation contexts and technologies.
+
+To ensure relevance to the study objectives, the dataset was filtered to retain only records located within Uganda. Key fields of interest included:
+
+1.  Water source type (e.g., borehole, protected spring, public stand post)
+
+2.  Functionality status (e.g., functional, non-functional, abandoned)
+
+3.  Installation year and report date
+
+4.  Administrative location (region, district, sub-county)
+
+5.  Geo location (latitude and longitude)
+
+#### **Data Cleaning and Standardization**
+
+Several data cleaning and preprocessing steps were applied to enhance the usability and reliability of the data set:
+
+1.  **Variable renaming:** Administrative and categorical variables were renamed for clarity and consistency.
+
+2.  **Removal of empty fields:** Columns with all values missing were removed to streamline the dataset.
+
+3.  **Date extraction:** The "report_date" field was converted to reporting year to enable longitudinal analysis of water point functionality.
+
+4.  **Installation decade grouping:** "install_year" values were grouped into decades (e.g., 1990s, 2000s) to explore trends in performance relative to infrastructure age.
+
+#### **Analytical Approach**
+
+Following cleaning, the data was explored using a combination of summary statistics, frequency distributions, and visualizations. Key analyses included:
+
+1.  Distribution of water source types by frequency and year of installation
+
+2.  Temporal trends in water point functionality, dis aggregated by installation decade
+
+3.  Functionality status classification into standardized categories to assess sustainability performance over time
+
+4.  Identification of patterns across unknown or missing installation years
+
+All data analysis and visualizations were conducted using R programming language, leveraging packages such as tidyverse, ggplot2,dplyr and knitr. Outputs were compiled into an HTML report using Quarto to support clear, reproducible reporting.
+
+```{r}
+#| label: load packages
+library(tidyverse)
+library(dplyr)   
+library(ggplot2)
+library(knitr)
+
+
 ```
 
 ## Reading the Data
 
-## Data Exploration Approach
 ```{r}
+#| label: Read data
+#Read data
+uganda_water_data <- read_csv(here::here("data/raw/Water_for_People_Uganda_2017_2020.csv"))
+```
+
+## Data Exploration Approach
+
+```{r}
+#| label: Group by water source type and count the number of records
 glimpse(uganda_water_data)
 
 dim(uganda_water_data)
-
-# Group by water source type and count the number of records
+#Group by water source type and count the number of records
 uganda_water_data |> 
   group_by(water_source) |> 
   summarise(n = n())
 
+
+```
+
+```{r}
+#| label: Group by functionality status
 #Group by functionality status
 uganda_water_data |> 
   group_by(status) |> 
   summarise(count = n(), .groups = "drop") 
 ```
 
+```{r}
+#| label: Group by report date
+#Group by report date
+uganda_water_data |> 
+  group_by(report_date) |> 
+  summarise(count = n(), .groups = "drop") 
+```
+
+```{r}
+#| label: Group by year of installation
+#Group by year of installation
+uganda_water_data |> 
+  group_by(install_year) |> 
+  summarise(count = n(), .groups = "drop") 
+```
 
 ## Initial Data Tidying
+
 ```{r}
-# Tidy column names
+#| label: Tidy column names
+#Tidy column names
 uganda_water_data_revised <- uganda_water_data |> 
   rename(Region = clean_adm1, 
          District = clean_adm2,
          County = clean_adm3,
-         Subcounty = clean_adm4)  
+         Subcounty = clean_adm4,)  
 ```
 
 ```{r}
+#| label: delete all columns that have all values as NA
 #delete all columns that have all values as NA
 uganda_water_data_revised_without_NA <- uganda_water_data_revised |>
   select(where(~ !all(is.na(.))))
@@ -68,13 +155,255 @@ uganda_water_data_revised_without_NA <- uganda_water_data_revised |>
 write_csv(uganda_water_data_revised_without_NA, here::here("data/processed/uganda_water_data_revised_without_NA.csv"))
 ```
 
-
 # Results
 
-[This will be the core of your analysis with specific requirements]
+Water Source Type Distribution
+
+@fig-water-source-type-distribution is a bar graph showing the distribution of water sources by type. There are ten source types, with public stand posts being the most common followed by yard taps for designated for public use.
+
+```{r}
+#| label: fig-water-source-type-distribution
+#| fig-cap: Distribution of Water Sources by Type
+
+uganda_water_data_revised_without_NA |> 
+  filter(!is.na(water_source)) |>
+  count(water_source) |>
+  ggplot(aes(x = reorder(water_source, n), y = n)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Distribution of Water Sources by Type", x = "Source Type", y = "Count")
+```
+
+```{r}
+#| label: tbl-count-of-water-sources-by-type
+uganda_water_data_revised_without_NA |>
+  group_by(water_source) |> 
+  summarise(n = n()) |> 
+  kable(caption = "Count of Water Sources by Type", col.names = c("Water Source", "Count"))
+```
+
+@tbl-count-of-water-sources-by-type is a table indicating the count of water sources by type.The most prevalent source is the public stand post, with 525 entries, accounting for over half of all recorded sources. This is followed by yard taps for public use, which total 380, indicating a strong reliance on piped distribution system.
+
+@fig-distribution-of-water-sources-by-year-of-installation illustrates the distribution of water sources by year of installation.The distribution shows that the majority of water sources were installed between 2000 and 2009, with 2004 having the highest number of installations. Installation activity declines sharply after 2011, suggesting reduced investment or incomplete data capture in more recent years.
+
+```{r}
+#| label: fig-distribution-of-water-sources-by-year-of-installation
+#| fig-cap: Distribution of Water Sources by Year of installation
+uganda_water_data_revised_without_NA |> 
+  filter(!is.na(install_year)) |>
+  count(install_year) |>
+  ggplot(aes(x = reorder(install_year, n), y = n)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Distribution of Water Sources by Year of installation", x = "Year of installation", y = "Count")
+
+
+```
+
+```{r}
+#| label: tbl-count-of-installations-per-year
+uganda_water_data_revised_without_NA |>
+  group_by(install_year) |>
+  summarise(count = n(), .groups = "drop") |>
+  kable(
+    caption = "Count of Installations by Year",
+    col.names = c("Installation Year", "Count")
+  )
+```
+
+@tbl-count-of-installations-per-year indicates the number of installations in a given year.The data shows a significant increase in water source installations from the late 1990s, peaking in 2004 with 112 installations, followed closely by 2003 and 2007. Installations decline sharply after 2009, and 92 entries lack installation year data, highlighting a potential gap in record completeness.
+
+@fig-trends-of-water-sources-types-by-year-of-installation illustrates the types of water sources installed in a given year. The graph displays the number of water source installations per year from 1970 to 2020, disaggregated by source type. This trend highlights how rural water infrastructure development has evolved over time and which technologies have been prioritized during different periods.The majority of water source installations occurred between the mid-1990s and late 2000s, with public stand posts and yard taps for public use dominating during this peak period. The chart also reveals a diverse mix of source types, though installations dropped sharply after 2010, suggesting a slowdown in infrastructure expansion or gaps in recent data.
+
+```{r}
+#| label: fig-trends-of-water-sources-types-by-year-of-installation
+#| fig-cap: Distribution of Water Sources by Year of installation 
+library(dplyr)
+library(ggplot2)
+
+# Summarize data: count water sources installed per year and type
+water_trends <- uganda_water_data_revised_without_NA |>
+  filter(!is.na(water_source), !is.na(install_year)) |>
+  group_by(install_year, water_source) |>
+  summarise(count = n(), .groups = "drop")
+
+# Plot stacked bar chart over installation years
+ggplot(water_trends, aes(x = install_year, y = count, fill = water_source)) +
+  geom_col() +            # stacked bar plot
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  labs(
+    title = "Distribution of Water Sources by Year of installation",
+    x = "Year of Installation",
+    y = "Number of Installations",
+    fill = "Water Source Type"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```         
+```
+
+```{r}
+#| label: tbl-count-of-water-source-type-by-year-of-installation
+uganda_water_data_revised_without_NA |>
+  filter(!is.na(water_source), !is.na(install_year)) |>
+  group_by(install_year, water_source) |>
+  summarise(count = n(), .groups = "drop") |>
+  arrange(install_year, water_source) |>
+  kable(
+    caption = "Count of Water Source Types by Year of Installation",
+    col.names = c("Installation Year", "Water Source Type", "Count")
+  )
+```
+
+@tbl-count-of-water-source-type-by-year-of-installation indicates the count of water source types by year of installation. The table revels diversity in water source types installed innany given year.
+
+```         
+```
+
+```{r}
+
+```
+
+```         
+```
+
+```{r}
+#| label: fig-water-point-functionality-over-time
+#| fig-cap: Water Point Functionality Percentage Over Time by Installation Decade
+uganda_water_data %>%
+  filter(!is.na(status_clean), !is.na(report_date)) %>%
+  mutate(
+    report_date = as.Date(report_date),
+    report_year = floor_date(report_date, "year"),
+    install_decade = if_else(
+      is.na(install_year),
+      "Unknown",
+      paste0(floor(install_year / 10) * 10, "s")
+    ),
+    status_clean = case_when(
+      status_clean %in% c("Abandoned", "Decommissioned") ~ "Abandoned/Decommissioned",
+      status_clean %in% c("Functional not in use", "Functional, not in use") ~ "Functional, not in use",
+      status_clean %in% c("Non-Functional dry season", "Non-Functional, dry season") ~ "Non-Functional, dry season",
+      TRUE ~ status_clean
+    ),
+    status_clean = factor(
+      status_clean,
+      levels = c(
+        "Functional",
+        "Functional, needs repair",
+        "Functional, not in use",
+        "Non-Functional",
+        "Non-Functional, dry season",
+        "Abandoned/Decommissioned"
+      )
+    )
+  ) %>%
+  group_by(install_decade, report_year, status_clean) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(install_decade, report_year) %>%
+  mutate(pct = count / sum(count) * 100) %>%
+  ungroup() %>%
+  ggplot(aes(x = report_year, y = pct, color = status_clean, group = status_clean)) +
+  geom_line(linewidth = 1, show.legend = TRUE) +
+  geom_point(size = 2, show.legend = TRUE) +
+  facet_wrap(~ install_decade, scales = "free_x", ncol = 2) +
+  scale_color_manual(
+    values = c(
+      "Functional" = "forestgreen",
+      "Functional, needs repair" = "orange",
+      "Functional, not in use" = "blue",
+      "Non-Functional" = "red",
+      "Non-Functional, dry season" = "brown",
+      "Abandoned/Decommissioned" = "purple"
+    ),
+    drop = FALSE
+  ) +
+  labs(
+    title = "Water Point Functionality Percentage Over Time by Installation Decade",
+    subtitle = "Including seasonal and usage-based categories",
+    x = "Report Year",
+    y = "Percentage (%)",
+    color = "Status",
+    caption = "Installation years grouped by decade; data aggregated annually"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_x_date(date_labels = "%Y", date_breaks = "1 year")
+```
+
+@fig-water-point-functionality-over-time illustrates functionality trends over time.The graph presents the percentage distribution of water point functionality statuses over time, categorized by the decade of installation. It reveals key insights into how infrastructure age relates to current functionality levels and highlights evolving performance patterns across the sector.
 
 # Conclusions
 
-## Summary of Findings
+### Summary of Findings
 
-## Questions and Next Steps
+-   **Peak Installation Period:** Most water points were installed between **1995 and 2009**, with a notable peak around **2004–2005**. This surge likely reflects increased sector funding, donor-supported initiatives, and national efforts to expand rural water access.
+
+-   **Decline in Installations Post-2005:** After the 2005 peak, installations declined steadily, indicating a possible shift from infrastructure expansion to maintenance and sustainability.
+
+-   **Dominant Water Source Types:** Public stand posts and tap stands were the most frequently installed source types, particularly during the peak years.
+
+-   **Protected springs** and **boreholes** were also common but installed at lower rates.
+
+-   **Technologies** like rainwater harvesting systems, kiosks, and yard taps were used sparingly, likely in specific contexts.
+
+-   **Maintenance Needs**: A notable percentage of sources were classified as "functional but needs repair", indicating the need for improved design or regular maintenance.
+
+### **Functionality Trends by Installation Decade**
+
+#### Key Observations:
+
+-   **Older Installations (1970s–1990s):**\
+    Water points installed in the 1970s, 1980s, and 1990s show limited reporting years, with most being either fully functional or needing repair. However, the low number of data points may suggest either limited historical record keeping or a significant portion of these older sources being decommissioned or no longer tracked.The presence of a few decommissioned or non-functional points also indicates the aging of this infrastructure.
+
+-   **2000s Installations:**\
+    Installations from the 2000s consistently report high functionality rates over the years, with the dominant status being **“Functional, needs repair”** (orange). This suggests that although many of these sources are still operational, they may require maintenance to remain reliable in the long term.
+
+-   **2010s Installations:**\
+    Water points from the 2010s show relatively high functionality, with many categorized as **functional but needing repair**. This suggests improvements in implementation and system resilience. A share of **non-functional** sources appears from 2015 onward, indicating emerging maintenance or management challenges.
+
+-   **2020s Installations:**\
+    While data is still limited for the 2020s, the few records available already indicate the emergence of **non-functional** sources shortly after installation. This points to potential early-life failures, possibly due to poor construction quality, inadequate management, or challenging environmental conditions.
+
+-   **Unknown Installation Years:**\
+    Water points with unrecorded installation years display the most variability in functionality status. A wide range of categories from fully functional to abandoned/decommissioned suggests inconsistent performance. This group likely includes a mix of older and undocumented sources, highlighting the importance of improved data completeness for informed asset management.
+
+### **Installation Trends by Water Source Type**
+
+#### Key Observations:
+
+-   **Growth Phase (1995–2005):**\
+    A sharp increase in installations began in the mid-1990s and peaked around 2004–2005. This growth period likely corresponds with expanded sector funding, donor-supported programs, and national efforts to increase access to safe water in rural areas. During this peak, annual installations exceeded 90 in some years.
+
+-   **Post-2005 Decline:**\
+    After 2005, the number of installations began to decline steadily. By 2015, annual installations had dropped significantly. This decline may be attributed to a shift in sector priorities from expansion to sustainability, as well as possible reductions in donor or government investment for new infrastructure.
+
+-   **Dominant Source Types:**
+
+    -   **Tap stands/public stand posts (pink)** and **public stand posts (turquoise)** are the most frequently installed source types across the entire period, dominating especially during the peak installation years.
+
+    -   **Protected springs** and **boreholes** appear more modestly but consistently across the years, suggesting their continued relevance in certain geographic or hydrogeological contexts.
+
+    -   **Rainwater harvesting systems**, **yard taps**, **kiosks**, and **tanks** were installed in much smaller numbers, possibly as complementary or context-specific solutions.
+
+    -   **Inconsistencies in Labeling:**\
+        The presence of both "Protected spring" and "Protected_spring" highlights inconsistencies in data entry, which may slightly affect trend accuracy. Data cleaning and standardization are essential for clearer analysis.
+
+### Implications
+
+This installation trend analysis reflects a sector-wide expansion drive during the early 2000s, followed by a transition towards consolidation and maintenance of existing systems. The dominance of public stand posts and tap stands suggests a historical focus on communal water access points rather than household-level connections. As the sector evolves, future investment strategies may need to balance new installations with service reliability, climate resilience, and user preferences.
+
+## Recommendations
+
+-   Deep Dive into Management Models: Link data with service management structures to identify success factors.
+
+-   Infrastructure Lifecycle Planning: Use decade-based functionality trends to guide preventive maintenance investments.
+
+-   Overlay performance data with environmental and socio-economic variables for contextual insights.
+
+-   Expand Dataset: Incorporate additional years and metadata (e.g., funding source, implementing agency) for richer analysis.
+
+```         
+```
